@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <title>PPT to PDF 변환기 - 최대 100MB 지원</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: rgba(22, 30, 49, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --accent-blue: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-sub: #cbd5e1;
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-card: 0 20px 45px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b1120 70%);
+      color: var(--text-main);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    /* Ambient background lights */
+    .ambient-glow {
+      position: fixed;
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(59, 130, 246, 0.1) 50%, transparent 80%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      width: min(1080px, calc(100% - 36px));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(11, 17, 32, 0.7);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+      color: white;
+    }
+
+    .brand-text h1 {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-limit {
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      vertical-align: middle;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-mobile-connect {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-mobile-connect:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-mobile-connect svg {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+    }
+
+    /* Warning Banner for LibreOffice missing */
+    .system-banner {
+      display: none;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-top: 18px;
+      color: #fde68a;
+      font-size: 13px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .system-banner.is-visible {
+      display: flex;
+    }
+
+    .system-banner a {
+      color: #fbbf24;
+      font-weight: 700;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 44px 0 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-section {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 30px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.25;
+      margin-bottom: 14px;
+    }
+
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #ffffff 30%, #a7f3d0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      color: var(--text-muted);
+      word-break: keep-all;
+      line-height: 1.6;
+    }
+
+    /* Features Grid */
+    .features-badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .feature-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-sub);
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+
+    .feature-chip svg {
+      width: 14px;
+      height: 14px;
+      color: var(--accent);
+    }
+
+    /* Converter Card */
+    .converter-card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 28px;
+      transition: all 0.3s ease;
+    }
+
+    /* Dropzone */
+    .dropzone {
+      position: relative;
+      border: 2px dashed rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius-md);
+      background: rgba(15, 23, 42, 0.6);
+      padding: 44px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 250px;
+    }
+
+    .dropzone:hover, .dropzone.is-dragging {
+      border-color: var(--accent);
+      background: rgba(16, 185, 129, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .dropzone-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      color: var(--accent);
+      transition: transform 0.2s ease;
+    }
+
+    .dropzone:hover .dropzone-icon {
+      transform: scale(1.08);
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    .dropzone-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .dropzone-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .dropzone-sub {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .btn-browse {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-browse:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .dropzone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Selected File View */
+    .selected-file-card {
+      display: none;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      margin-top: 18px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .selected-file-card.is-visible {
+      display: flex;
+    }
+
+    .file-format-badge {
+      width: 44px;
+      height: 48px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 10px rgba(180, 83, 9, 0.3);
+      flex-shrink: 0;
+    }
+
+    .file-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .file-size-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn-cancel-file {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-cancel-file:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+    }
+
+    /* Convert Action Button */
+    .btn-convert {
+      width: 100%;
+      height: 52px;
+      margin-top: 18px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: none;
+      color: white;
+      font-size: 15.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-convert:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(16, 185, 129, 0.35);
+      filter: brightness(1.05);
+    }
+
+    .btn-convert:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-convert:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      filter: grayscale(0.5);
+    }
+
+    .btn-convert svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Progress & Loading State */
+    .progress-box {
+      display: none;
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: var(--radius-md);
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .progress-box.is-visible {
+      display: block;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 13.5px;
+    }
+
+    .progress-status-text {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .progress-percentage {
+      font-weight: 700;
+      color: #34d399;
+      font-feature-settings: "tnum";
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #34d399);
+      border-radius: 10px;
+      transition: width 0.2s ease;
+    }
+
+    .progress-bar-fill.indeterminate {
+      width: 40% !important;
+      position: absolute;
+      animation: shimmer 1.5s infinite ease-in-out;
+    }
+
+    .progress-detail {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Success Card */
+    .success-card {
+      display: none;
+      margin-top: 20px;
+      padding: 22px;
+      border-radius: var(--radius-md);
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      animation: fadeIn 0.3s ease;
+      text-align: center;
+    }
+
+    .success-card.is-visible {
+      display: block;
+    }
+
+    .success-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .success-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .success-title {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .success-filename {
+      font-size: 13px;
+      color: #a7f3d0;
+      margin-bottom: 16px;
+      word-break: break-all;
+    }
+
+    .success-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-download {
+      flex: 1;
+      min-width: 140px;
+      height: 44px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .btn-preview {
+      flex: 1;
+      min-width: 140px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-new-convert {
+      width: 100%;
+      height: 38px;
+      background: transparent;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-new-convert:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Error Message Box */
+    .error-box {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: var(--danger-bg);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+      font-size: 13.5px;
+      align-items: center;
+      gap: 10px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .error-box.is-visible {
+      display: flex;
+    }
+
+    .error-box svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: #ef4444;
+    }
+
+    /* Device guide cards */
+    .device-guide-section {
+      width: min(1080px, calc(100% - 36px));
+      margin: 40px auto 0;
+    }
+
+    .device-guide-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-align: center;
+      color: var(--text-sub);
+    }
+
+    .device-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .device-card {
+      background: rgba(22, 30, 49, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .device-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .device-header svg {
+      width: 20px;
+      height: 20px;
+      color: var(--accent);
+    }
+
+    .device-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Modal for Mobile QR Code */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.is-open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #131c2e;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      width: min(440px, 100%);
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: white;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .modal-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .qr-container {
+      background: white;
+      padding: 16px;
+      border-radius: 14px;
+      display: inline-block;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .url-copy-box {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .url-text {
+      flex: 1;
+      font-family: monospace;
+      font-size: 13.5px;
+      color: #38bdf8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .btn-copy {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: var(--accent);
+    }
+
+    .modal-tips {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    /* Footer */
+    footer {
+      padding: 24px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    footer p {
+      margin-bottom: 4px;
+    }
+
+    /* Animations */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shimmer {
+      0% { left: -40%; }
+      50% { left: 100%; }
+      100% { left: 100%; }
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 640px) {
+      .container { width: calc(100% - 28px); }
+      header { padding: 14px 0; }
+      .brand-text h1 { font-size: 16px; }
+      .badge-limit { display: none; }
+      main { padding: 26px 0 40px; }
+      .hero-title { font-size: 26px; }
+      .hero-desc { font-size: 14px; }
+      .converter-card { padding: 18px; border-radius: 16px; }
+      .dropzone { padding: 32px 14px; min-height: 210px; }
+      .dropzone-icon { width: 52px; height: 52px; margin-bottom: 14px; }
+      .dropzone-icon svg { width: 26px; height: 26px; }
+      .dropzone-title { font-size: 15.5px; }
+      .btn-convert { height: 48px; font-size: 15px; }
+      .device-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="PPT to PDF 홈">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>PPT to PDF <span class="badge-limit">최대 100MB</span></h1>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <button class="btn-mobile-connect" id="btn-open-mobile-modal" type="button" aria-label="스마트폰 접속 QR 코드">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+          <span>스마트폰 접속 QR</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- LibreOffice Warning Banner (If not installed) -->
+    <div class="system-banner" id="libreoffice-banner">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>변환 엔진(LibreOffice)이 감지되지 않았습니다. 변환 기능을 활성화하려면 설치가 필요합니다.</span>
+      </div>
+      <a href="https://ko.libreoffice.org/download/download/" target="_blank" rel="noopener">무료 다운로드</a>
+    </div>
+  </div>
+
+  <!-- Main Hero & Converter -->
+  <main class="container">
+    <section class="hero-section">
+      <div class="hero-tag">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        모바일 & 데스크톱 완벽 지원
+      </div>
+      <h2 class="hero-title">
+        PPT·PPTX 프레젠테이션을<br>
+        <span class="gradient-text">깔끔한 PDF 문서로 변환</span>
+      </h2>
+      <p class="hero-desc">
+        서식과 폰트를 고품질로 보존하며 대용량 100MB 파일까지 빠르게 변환합니다.<br>
+        Windows PC는 물론 Android, iPhone(iOS) 어디서나 접속하여 바로 이용하세요.
+      </p>
+
+      <div class="features-badge-row">
+        <span class="feature-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>대용량 100MB 지원</span>
+        <span class="feature-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/></svg>안드로이드 & iOS 모바일 최적화</span>
+        <span class="feature-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>변환 즉시 파일 자동 삭제</span>
+        <span class="feature-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>한글 파일명 완벽 보존</span>
+      </div>
+    </section>
+
+    <!-- Converter Form Card -->
+    <div class="converter-card">
+      <!-- Dropzone -->
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일 선택 또는 드래그 앤 드롭 영역">
+        <div class="dropzone-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
+        <p class="dropzone-title">PPT 또는 PPTX 파일을 놓아주세요</p>
+        <p class="dropzone-sub">스마트폰이나 PC에서 터치/클릭하여 파일 선택 (최대 100MB)</p>
+        <button class="btn-browse" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          파일 선택하기
+        </button>
+        <input id="file-input" type="file" accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" aria-hidden="true">
+      </div>
+
+      <!-- Selected File Display -->
+      <div class="selected-file-card" id="selected-file-card">
+        <div class="file-format-badge" id="file-ext-badge">PPTX</div>
+        <div class="file-details">
+          <div class="file-name-text" id="file-name-text">파일명.pptx</div>
+          <div class="file-size-text" id="file-size-text">0 MB</div>
+        </div>
+        <button class="btn-cancel-file" id="btn-cancel-file" type="button" aria-label="선택 해제" title="파일 제거">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Convert Button -->
+      <button class="btn-convert" id="btn-convert" type="button" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <line x1="12" y1="18" x2="12" y2="12"></line>
+          <line x1="9" y1="15" x2="15" y2="15"></line>
+        </svg>
+        <span>PDF로 변환하기</span>
+      </button>
+
+      <!-- Progress Box (Upload & Conversion status) -->
+      <div class="progress-box" id="progress-box">
+        <div class="progress-header">
+          <span class="progress-status-text" id="progress-status-text">
+            <span class="spinner" id="progress-spinner"></span>
+            <span id="progress-step-label">파일 업로드 중...</span>
+          </span>
+          <span class="progress-percentage" id="progress-percentage">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-bar-fill"></div>
+        </div>
+        <div class="progress-detail">
+          <span id="progress-bytes-label">0 MB / 0 MB</span>
+          <span id="progress-speed-label">대용량 파일도 안정적으로 전송됩니다</span>
+        </div>
+      </div>
+
+      <!-- Success Card -->
+      <div class="success-card" id="success-card">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h3 class="success-title">PDF 변환이 완료되었습니다!</h3>
+        <p class="success-filename" id="success-filename">presentation.pdf</p>
+        <div class="success-actions">
+          <a class="btn-download" id="btn-download" href="#" download>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            PDF 다운로드
+          </a>
+          <a class="btn-preview" id="btn-preview" href="#" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            미리보기 열기
+          </a>
+        </div>
+        <button class="btn-new-convert" id="btn-new-convert" type="button">다른 파일 변환하기</button>
+      </div>
+
+      <!-- Error Alert -->
+      <div class="error-box" id="error-box" role="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span id="error-text">오류가 발생했습니다.</span>
+      </div>
+    </div>
+
+    <!-- Multi-Platform Guide Section -->
+    <section class="device-guide-section">
+      <h3 class="device-guide-title">모든 기기에서 즉시 이용하는 방법</h3>
+      <div class="device-grid">
+        <div class="device-card">
+          <div class="device-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <span>Android (갤럭시 등)</span>
+          </div>
+          <p class="device-desc">
+            카메라로 상단 QR 코드를 스캔하거나 Chrome 브라우저에 Wi-Fi IP 주소를 입력하세요. 파일 앱 및 구글 드라이브의 PPT를 바로 선택해 변환할 수 있습니다.
+          </p>
+        </div>
+
+        <div class="device-card">
+          <div class="device-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="3" ry="3"/><circle cx="12" cy="18" r="1"/></svg>
+            <span>iOS (아이폰 / 아이패드)</span>
+          </div>
+          <p class="device-desc">
+            기본 카메라로 QR을 비추면 Safari 링크가 뜹니다. 파일 앱의 키노트/PPT 파일을 올리고, 변환 후 '미리보기'나 '다운로드'로 즉시 저장하세요.
+          </p>
+        </div>
+
+        <div class="device-card">
+          <div class="device-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Windows & Mac PC</span>
+          </div>
+          <p class="device-desc">
+            드래그 앤 드롭으로 100MB 크기의 대용량 슬라이드를 한 번에 올릴 수 있으며, 변환 즉시 원본 파일은 서버에서 영구 삭제되어 안전합니다.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Connect QR Modal -->
+  <div class="modal-overlay" id="mobile-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <button class="modal-close" id="btn-close-modal" aria-label="닫기">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <h3 class="modal-title" id="modal-title">스마트폰으로 간편 접속</h3>
+      <p class="modal-desc">안드로이드 또는 아이폰 기본 카메라로 아래 QR 코드를 비추면 즉시 웹사이트로 이동합니다.</p>
+
+      <div class="qr-container">
+        <div id="qrcode-box"></div>
+      </div>
+
+      <div class="url-copy-box">
+        <span class="url-text" id="modal-url-text">http://127.0.0.1:5000</span>
+        <button class="btn-copy" id="btn-copy-url" type="button">복사</button>
+      </div>
+
+      <div class="modal-tips">
+        💡 <strong>접속 확인 팁:</strong> 스마트폰과 이 컴퓨터가 동일한 Wi-Fi 공유기(네트워크)에 연결되어 있어야 모바일에서 접속할 수 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>PPT & PPTX to PDF Converter · 최대 100MB 지원</p>
+      <p>업로드된 모든 프레젠테이션과 변환 문서는 변환 직후 임시 보관소에서 영구 삭제됩니다.</p>
+    </div>
+  </footer>
+
+  <script src="/qrcode.min.js"></script>
+  <script>
+    (function () {
+      // Elements
+      const fileInput = document.getElementById("file-input");
+      const dropzone = document.getElementById("dropzone");
+      const selectedFileCard = document.getElementById("selected-file-card");
+      const fileNameText = document.getElementById("file-name-text");
+      const fileSizeText = document.getElementById("file-size-text");
+      const fileExtBadge = document.getElementById("file-ext-badge");
+      const btnCancelFile = document.getElementById("btn-cancel-file");
+      const btnConvert = document.getElementById("btn-convert");
+
+      const progressBox = document.getElementById("progress-box");
+      const progressSpinner = document.getElementById("progress-spinner");
+      const progressStepLabel = document.getElementById("progress-step-label");
+      const progressPercentage = document.getElementById("progress-percentage");
+      const progressBarFill = document.getElementById("progress-bar-fill");
+      const progressBytesLabel = document.getElementById("progress-bytes-label");
+      const progressSpeedLabel = document.getElementById("progress-speed-label");
+
+      const successCard = document.getElementById("success-card");
+      const successFilename = document.getElementById("success-filename");
+      const btnDownload = document.getElementById("btn-download");
+      const btnPreview = document.getElementById("btn-preview");
+      const btnNewConvert = document.getElementById("btn-new-convert");
+
+      const errorBox = document.getElementById("error-box");
+      const errorText = document.getElementById("error-text");
+      const libreofficeBanner = document.getElementById("libreoffice-banner");
+
+      // Modal elements
+      const btnOpenMobileModal = document.getElementById("btn-open-mobile-modal");
+      const mobileModal = document.getElementById("mobile-modal");
+      const btnCloseModal = document.getElementById("btn-close-modal");
+      const modalUrlText = document.getElementById("modal-url-text");
+      const btnCopyUrl = document.getElementById("btn-copy-url");
+      const qrcodeBox = document.getElementById("qrcode-box");
+
+      const MAX_BYTES = 100 * 1024 * 1024; // 100MB
+      let currentFile = null;
+      let activeXhr = null;
+      let createdBlobUrl = null;
+      let qrInstance = null;
+
+      // Status check & Mobile URL init
+      async function initServerStatus() {
+        const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        try {
+          const res = await fetch("/api/status");
+          if (res.ok) {
+            const data = await res.json();
+            if (!data.libreoffice_installed) {
+              libreofficeBanner.classList.add("is-visible");
+            }
+            if (isLocalHost && data.mobile_url) {
+              setupMobileModal(data.mobile_url);
+            } else {
+              setupMobileModal(window.location.origin);
+            }
+          }
+        } catch (e) {
+          console.warn("Status check failed:", e);
+          setupMobileModal(window.location.origin);
+        }
+      }
+
+      function setupMobileModal(targetUrl) {
+        modalUrlText.textContent = targetUrl;
+        qrcodeBox.innerHTML = "";
+        try {
+          qrInstance = new QRCode(qrcodeBox, {
+            text: targetUrl,
+            width: 180,
+            height: 180,
+            colorDark: "#0b1120",
+            colorLight: "#ffffff"
+          });
+        } catch (err) {
+          console.warn("QR Code render error:", err);
+        }
+      }
+
+      // Format bytes
+      function formatBytes(bytes) {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      }
+
+      function showError(msg) {
+        errorText.textContent = msg;
+        errorBox.classList.add("is-visible");
+      }
+
+      function hideError() {
+        errorBox.classList.remove("is-visible");
+      }
+
+      // Handle File Selection
+      function handleFile(file) {
+        hideError();
+        successCard.classList.remove("is-visible");
+        progressBox.classList.remove("is-visible");
+
+        if (!file) return;
+
+        const ext = file.name.split(".").pop().toLowerCase();
+        if (!["ppt", "pptx"].includes(ext)) {
+          showError("PPT 또는 PPTX 확장자의 파워포인트 파일만 선택할 수 있습니다.");
+          return;
+        }
+
+        if (file.size > MAX_BYTES) {
+          showError(`파일 크기가 100MB를 초과했습니다. (현재: ${formatBytes(file.size)})`);
+          return;
+        }
+
+        currentFile = file;
+        fileNameText.textContent = file.name;
+        fileSizeText.textContent = formatBytes(file.size);
+        fileExtBadge.textContent = ext.toUpperCase();
+
+        selectedFileCard.classList.add("is-visible");
+        btnConvert.disabled = false;
+      }
+
+      function resetFile() {
+        currentFile = null;
+        fileInput.value = "";
+        selectedFileCard.classList.remove("is-visible");
+        btnConvert.disabled = true;
+        hideError();
+      }
+
+      // Drag and Drop
+      ["dragenter", "dragover"].forEach((evt) => {
+        dropzone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add("is-dragging");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((evt) => {
+        dropzone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove("is-dragging");
+        });
+      });
+
+      dropzone.addEventListener("drop", (e) => {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      btnCancelFile.addEventListener("click", (e) => {
+        e.stopPropagation();
+        resetFile();
+      });
+
+      // Start Conversion
+      btnConvert.addEventListener("click", () => {
+        if (!currentFile) return;
+
+        hideError();
+        successCard.classList.remove("is-visible");
+        progressBox.classList.add("is-visible");
+        btnConvert.disabled = true;
+
+        const formData = new FormData();
+        formData.append("file", currentFile);
+
+        const xhr = new XMLHttpRequest();
+        activeXhr = xhr;
+
+        const startTime = Date.now();
+        let lastLoaded = 0;
+        let lastTime = startTime;
+
+        // Upload progress
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            progressBarFill.classList.remove("indeterminate");
+            progressBarFill.style.width = percent + "%";
+            progressPercentage.textContent = percent + "%";
+            progressBytesLabel.textContent = `${formatBytes(e.loaded)} / ${formatBytes(e.total)}`;
+
+            // Speed calc
+            const now = Date.now();
+            const timeDiff = (now - lastTime) / 1000;
+            if (timeDiff >= 0.5) {
+              const speedBytes = (e.loaded - lastLoaded) / timeDiff;
+              progressSpeedLabel.textContent = `${formatBytes(speedBytes)}/s`;
+              lastLoaded = e.loaded;
+              lastTime = now;
+            }
+
+            if (percent >= 100) {
+              progressStepLabel.textContent = "서버에서 PDF로 변환 중...";
+              progressPercentage.textContent = "변환 중";
+              progressSpeedLabel.textContent = "대용량 프레젠테이션은 수십 초 소요될 수 있습니다";
+              progressBarFill.classList.add("indeterminate");
+            } else {
+              progressStepLabel.textContent = `파일 업로드 중... (${percent}%)`;
+            }
+          }
+        };
+
+        xhr.responseType = "blob";
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const blob = xhr.response;
+            if (createdBlobUrl) {
+              URL.revokeObjectURL(createdBlobUrl);
+            }
+            createdBlobUrl = URL.createObjectURL(blob);
+
+            const downloadBaseName = currentFile.name.replace(/\.(pptx?)$/i, "") || "presentation";
+            const finalPdfName = `${downloadBaseName}.pdf`;
+
+            successFilename.textContent = finalPdfName;
+            btnDownload.href = createdBlobUrl;
+            btnDownload.download = finalPdfName;
+            btnPreview.href = createdBlobUrl;
+
+            // Trigger download automatically
+            try {
+              const tempA = document.createElement("a");
+              tempA.href = createdBlobUrl;
+              tempA.download = finalPdfName;
+              document.body.appendChild(tempA);
+              tempA.click();
+              tempA.remove();
+            } catch (err) {
+              console.warn("Auto-download triggered alternative:", err);
+            }
+
+            progressBox.classList.remove("is-visible");
+            successCard.classList.add("is-visible");
+            resetFile();
+          } else {
+            // Error response
+            progressBox.classList.remove("is-visible");
+            btnConvert.disabled = false;
+
+            // Blob error message reader
+            const reader = new FileReader();
+            reader.onload = function () {
+              try {
+                const errObj = JSON.parse(reader.result);
+                showError(errObj.error || "변환에 실패했습니다.");
+              } catch (_) {
+                showError(`서버 오류가 발생했습니다 (${xhr.status}). 다시 시도해 주세요.`);
+              }
+            };
+            reader.readAsText(xhr.response);
+          }
+        };
+
+        xhr.onerror = () => {
+          progressBox.classList.remove("is-visible");
+          btnConvert.disabled = false;
+          showError("서버와의 통신이 원활하지 않습니다. Wi-Fi 연결을 확인해 주세요.");
+        };
+
+        xhr.ontimeout = () => {
+          progressBox.classList.remove("is-visible");
+          btnConvert.disabled = false;
+          showError("요청 시간이 초과되었습니다. 파일 크기를 줄이거나 잠시 후 다시 시도해 주세요.");
+        };
+
+        // 5 minutes timeout for 100MB files
+        xhr.timeout = 300000;
+        xhr.open("POST", "/api/convert");
+        xhr.send(formData);
+      });
+
+      // New convert reset
+      btnNewConvert.addEventListener("click", () => {
+        successCard.classList.remove("is-visible");
+        resetFile();
+      });
+
+      // Mobile Modal triggers
+      btnOpenMobileModal.addEventListener("click", () => {
+        mobileModal.classList.add("is-open");
+      });
+
+      btnCloseModal.addEventListener("click", () => {
+        mobileModal.classList.remove("is-open");
+      });
+
+      mobileModal.addEventListener("click", (e) => {
+        if (e.target === mobileModal) {
+          mobileModal.classList.remove("is-open");
+        }
+      });
+
+      btnCopyUrl.addEventListener("click", async () => {
+        const text = modalUrlText.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          btnCopyUrl.textContent = "복사됨!";
+          setTimeout(() => { btnCopyUrl.textContent = "복사"; }, 2000);
+        } catch (_) {
+          const temp = document.createElement("input");
+          temp.value = text;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          temp.remove();
+          btnCopyUrl.textContent = "복사됨!";
+          setTimeout(() => { btnCopyUrl.textContent = "복사"; }, 2000);
+        }
+      });
+
+      // Start initialization
+      initServerStatus();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ppt-to-pdf-converter
+    runtime: docker
+    plan: free
+    region: singapore # 한국에서 가장 가까운 싱가포르 리전 (지연시간 최소화)
+    envVars:
+      - key: PORT
+        value: 5000
